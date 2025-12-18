@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, X, Loader2, Sparkles } from 'lucide-react';
-import { ChatMessage } from '../types';
+import { MessageSquare, Send, X, Loader2, Sparkles, ShoppingBag } from 'lucide-react';
+import { ChatMessage, Dish } from '../types';
 import { getFoodRecommendation } from '../services/geminiService';
-import { INITIAL_CHAT_MESSAGE } from '../constants';
+import { INITIAL_CHAT_MESSAGE, RESTAURANTS } from '../constants';
 
-const ChatBot: React.FC = () => {
+interface ChatBotProps {
+  addToCart?: (dish: Dish, restaurantId: string) => void;
+}
+
+const ChatBot: React.FC<ChatBotProps> = ({ addToCart }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'model', text: INITIAL_CHAT_MESSAGE }
@@ -43,6 +47,44 @@ const ChatBot: React.FC = () => {
     if (e.key === 'Enter') handleSendMessage();
   };
 
+  // Fonction pour parser le texte et extraire l'ID de commande si présent
+  const renderMessageContent = (text: string) => {
+    const orderRegex = /\[ORDER:([^\]]+)\]/;
+    const match = text.match(orderRegex);
+    const cleanText = text.replace(orderRegex, '').trim();
+
+    let suggestedDish: Dish | undefined;
+    let restaurantId: string | undefined;
+
+    if (match && addToCart) {
+      const dishId = match[1];
+      // Trouver le plat correspondant
+      for (const resto of RESTAURANTS) {
+        const found = resto.menu.find(d => d.id === dishId);
+        if (found) {
+          suggestedDish = found;
+          restaurantId = resto.id;
+          break;
+        }
+      }
+    }
+
+    return (
+      <div className="flex flex-col gap-2">
+        <p className="whitespace-pre-line">{cleanText}</p>
+        {suggestedDish && restaurantId && (
+          <button
+            onClick={() => addToCart(suggestedDish!, restaurantId!)}
+            className="mt-2 flex items-center justify-center gap-2 bg-white text-orange-600 font-bold py-2 px-3 rounded-xl text-xs hover:bg-orange-50 transition-colors shadow-sm border border-orange-100"
+          >
+            <ShoppingBag size={14} />
+            Commander {suggestedDish.name} ({suggestedDish.price} FCFA)
+          </button>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       {/* Floating Action Button */}
@@ -72,12 +114,12 @@ const ChatBot: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
           {messages.map((msg, idx) => (
             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
+              <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
                 msg.role === 'user' 
                   ? 'bg-orange-600 text-white rounded-tr-none' 
                   : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-none'
               }`}>
-                {msg.text}
+                {msg.role === 'model' ? renderMessageContent(msg.text) : msg.text}
               </div>
             </div>
           ))}

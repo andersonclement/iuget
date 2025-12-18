@@ -1,45 +1,40 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { RESTAURANTS } from "../constants";
 
-const apiKey = process.env.API_KEY || '';
-
-// Initialize client ONLY if key exists, otherwise we handle it in the function
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
-
 export const getFoodRecommendation = async (userQuery: string): Promise<string> => {
-  if (!ai) {
-    return "Désolé, le service d'IA n'est pas configuré (Clé API manquante). Veuillez contacter l'administrateur.";
-  }
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  // Construct a context-aware prompt with menu data
   const menuContext = RESTAURANTS.map(r => 
-    `Restaurant: ${r.name} (${r.location})
-     Menu: ${r.menu.map(d => `- ${d.name} (${d.category}): ${d.description} - ${d.price} FCFA`).join('\n')}`
-  ).join('\n\n');
+    `Resto: ${r.name} (${r.location}, Vibe: ${r.vibeLevel}). Menu: ${r.menu.map(d => `${d.name} (${d.price} FCFA)`).join(', ')}`
+  ).join('\n');
 
-  const prompt = `
-    Tu es un expert culinaire camerounais passionné et amical. Ton but est d'aider les utilisateurs à choisir un repas parmi les restaurants disponibles.
+  const systemInstruction = `
+    Tu es "Le Grand Chef CamerFestin" 🇨🇲. Ton but est de conseiller les meilleurs plats du Cameroun.
+    Ton langage est celui du kwat pur : utilise des expressions comme "Masse !", "Le goût de ça", "Le kwat dérange !", "C'est calé", "Tu vas confirmer", "On est ensemble", "Ça pète".
     
-    Voici les données des restaurants disponibles :
+    Voici les restaurants et leur "vibe" actuelle :
     ${menuContext}
 
-    Règles :
-    1. Réponds de manière concise, chaleureuse et utilise des expressions camerounaises si approprié (ex: "Le goût de ça !", "On va se mettre bien").
-    2. Recommande uniquement des plats présents dans la liste ci-dessus.
-    3. Mentionne le prix et le restaurant où trouver le plat.
-    4. Si l'utilisateur demande quelque chose qui n'est pas dans la liste, suggère poliment une alternative proche disponible.
-
-    Question de l'utilisateur : "${userQuery}"
+    RÈGLES :
+    1. Si un resto est marqué "vibe: derange", dis au client que c'est là-bas que ça se passe en ce moment, c'est le buzz du quartier.
+    2. Utilise le jargon camerounais moderne. Ne sois pas trop formel.
+    3. Si tu recommandes un plat spécifique présent dans la liste, ajoute obligatoirement le tag [ORDER:NOM_DU_PLAT] à la fin de ton message.
+    4. Propose toujours un accompagnement (miondo, plantain, taro) parce qu'au pays on mange consistant.
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
+      model: 'gemini-3-flash-preview',
+      contents: userQuery,
+      config: {
+        systemInstruction: systemInstruction,
+        temperature: 0.95,
+      }
     });
-    return response.text || "Désolé, je n'ai pas pu générer de réponse.";
+    
+    return response.text || "Masse ! La connexion au kwat a un petit ndem. Reparle-moi voir ?";
   } catch (error) {
-    console.error("Erreur Gemini:", error);
-    return "Oups ! J'ai eu un petit problème de réseau. Peux-tu répéter ?";
+    return "Petit souci technique au carrefour. Le benskineur arrive avec la connexion, réessaie un peu !";
   }
 };

@@ -8,10 +8,11 @@ interface CartSidebarProps {
   cart: CartItem[];
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, delta: number) => void;
-  clearCart?: () => void; // Nouvelle prop optionnelle
+  clearCart?: () => void;
+  onCheckout: () => void;
 }
 
-const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose, cart, removeFromCart, updateQuantity, clearCart }) => {
+const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose, cart, removeFromCart, updateQuantity, clearCart, onCheckout }) => {
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
@@ -111,7 +112,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose, cart, remove
                 
                 <div className="">
                   <button
-                    onClick={() => alert("Fonctionnalité de paiement à implémenter pour la démo !")}
+                    onClick={onCheckout}
                     className="flex justify-center items-center w-full px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-orange-600 hover:bg-orange-700 transition-colors"
                   >
                     Commander <ChevronRight size={20} className="ml-2" />
