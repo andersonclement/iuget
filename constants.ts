@@ -14,7 +14,7 @@ export const RESTAURANTS: Restaurant[] = [
   {
     id: 'r1',
     name: "Chez Maman Nono",
-    location: "Bastos, Yaoundé",
+    location: "LOPOm, Douala",
     rating: 4.8,
     image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=800",
     coordinates: { x: 60, y: 45 },
