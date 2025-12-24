@@ -4,7 +4,7 @@ import { Restaurant } from './types';
 export const POPULAR_LOCATIONS = [
   { name: "Yaoundé", type: "Ville" },
   { name: "Douala", type: "Ville" },
-  { name: "Bastos", type: "Quartier" },
+  { name: "LOGPOM", type: "Quartier" },
   { name: "Akwa", type: "Quartier" },
   { name: "Bonapriso", type: "Quartier" },
   { name: "Kribi", type: "Ville" }
