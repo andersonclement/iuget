@@ -1,4 +1,4 @@
-
+de
 import { Restaurant } from './types';
 
 export const POPULAR_LOCATIONS = [
@@ -90,4 +90,4 @@ export const RESTAURANTS: Restaurant[] = [
   }
 ];
 
-export const INITIAL_CHAT_MESSAGE = "Salut!je suis ton assisnt . Tu veux caler l'estomac avec quoi aujourd'hui ! si tu n'as aucune idée demande moi 🥹🥹";
+export const INITIAL_CHAT_MESSAGE = "Salut!je suis ton assistant . Tu veux caler l'estomac avec quoi aujourd'hui ! si tu n'as aucune idée demande moi 🥹🥹";
