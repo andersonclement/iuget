@@ -90,4 +90,4 @@ export const RESTAURANTS: Restaurant[] = [
   }
 ];
 
-export const INITIAL_CHAT_MESSAGE = "Masse ! C'est Maman IA du 237. Tu veux caler l'estomac avec quoi aujourd'hui ? Un Ndolé qui chante ou un Eru qui siffle ? Le kwat dérange aujourd'hui hein !";
+export const INITIAL_CHAT_MESSAGE = "Salut!je suis ton assisnt . Tu veux caler l'estomac avec quoi aujourd'hui ! si tu n'as aucune idée demande moi 🥹🥹";
