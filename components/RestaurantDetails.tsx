@@ -296,7 +296,8 @@ const RestaurantDetails: React.FC<RestaurantDetailsProps> = ({ restaurant, onBac
                     <h4 className="font-black text-gray-900 uppercase tracking-widest text-xs mb-3">Nous trouver</h4>
                     <p className="text-sm text-gray-500 font-medium mb-6 leading-relaxed">
                         {restaurant.location}<br/>
-                        Ouvert tous les jours de 09h à 23h
+                        Ouvert tous les jours de 8h
+ à 23h
                     </p>
                     <button className="text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2 hover:gap-4 transition-all group">
                         Ouvrir dans Google Maps <ChevronRight size={14} />
