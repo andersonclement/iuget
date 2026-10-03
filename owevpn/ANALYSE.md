@@ -98,7 +98,55 @@ commercial (type DexProtector/Jiagu), au-delà d'un simple ProGuard/R8.
   (appels `nativeRaspStarted()` / `nativeReloadSecuritySettings()` observés
   côté Kotlin) — non analysé en détail (hors périmètre : SDK tiers).
 
-## 6. Limites de l'analyse statique
+## 6. Pont JNI Java ↔ Rust
+
+Le code natif ne gère pas directement la création de l'interface VPN
+(impossible sans passer par l'API système `android.net.VpnService`, régie
+par permission). Le flux est un callback ascendant classique :
+
+1. Le moteur Rust négocie le tunnel WireGuard et détermine les paramètres
+   d'interface (MTU, adresses, DNS), qu'il sérialise en JSON.
+2. Il invoque `EngineCallback.configureTun(String interfaceJson)` — défini
+   côté Java, implémenté par `OweVpnService` — pour demander la création
+   du TUN.
+3. Java construit l'interface avec l'API officielle :
+   ```java
+   VpnService.Builder b = new VpnService.Builder(this)
+       .setSession(...).setMtu(json.optInt("mtu", 1420));
+   b.addAddress(ip, prefix);     // depuis json["addresses"]
+   b.addRoute("0.0.0.0", 0);     // tout le trafic par défaut
+   b.addDnsServer(dns);          // depuis json["dns"], repli "1.1.1.1"
+   ParcelFileDescriptor fd = b.establish();
+   return fd.getFd();            // le descripteur redescend vers Rust
+   ```
+4. Le descripteur de fichier brut retourne au code natif, qui l'utilise
+   directement pour lire/écrire les paquets IP (chiffrement/déchiffrement
+   WireGuard fait entièrement côté Rust, sans repasser par la JVM pour
+   le flux de données — raison de performance).
+5. Repli codé en dur si aucune adresse fournie par le serveur :
+   `10.138.128.1/22` — explique le sous-réseau `10.138.128.0/22` observé
+   dans les chaînes natives.
+
+### Surface complète du pont JNI (`OweEngine`, natif ← → Java)
+
+| Méthode native | Rôle probable |
+|---|---|
+| `nativeSeal(String)` / `nativeOpen(String)` | Chiffrement/déchiffrement "scellé" (terminologie façon libsodium `crypto_box_seal`/`_open`) — candidat direct pour (dé)chiffrer `lcs.ts` et `vpn_configs.bin` |
+| `nativePrefsKey()` → `byte[]` | Clé de chiffrement locale dérivée côté natif |
+| `nativeDeviceId(String)` / `nativeActivationCode(String)` | Identification appareil / activation de licence |
+| `nativeVerifyCode` / `nativeVerifySecurityDisableCode` | Vérification de code (2FA / désactivation de sécurité) |
+| `nativePaymentStart(long)` / `nativePaymentCancel(long)` | Logique d'abonnement/paiement |
+| `nativeGuardCheck/Scan/Watchdog`, `nativeRasp*` | Couche anti-tampering (RASP), remonte des événements via `onRaspSession`/`onLog` |
+| `nativeSocksStart/Stop` | Proxy SOCKS local (alternative au tunnel VPN complet) |
+| `nativeSubtractHosts(String)` | Filtrage de domaines (probable blocage pub/traqueurs) |
+| `nativeStart/Stop/Status/Create/Destroy` | Cycle de vie du moteur VPN (session native identifiée par un handle `long`) |
+
+L'interface `EngineCallback` (Java → implémentée par `OweVpnService`)
+expose en retour : `configureTun`, `onCustomer`, `onPayment`, `onState`,
+`onStatus`, `onLog`, `onError`, `onStage`, `onRaspSession` — un modèle
+observateur classique pour faire remonter l'état du moteur natif vers l'UI.
+
+## 7. Limites de l'analyse statique
 
 Le contenu réel de `vpn_configs.bin` et `lcs.ts` ne peut pas être déchiffré
 sans extraire la clé, probablement dérivée à l'exécution dans
