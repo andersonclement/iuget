@@ -1,0 +1,49 @@
+.class public final Lo/oI;
+.super Lo/pI;
+.source "SourceFile"
+
+
+# static fields
+.field public static final d:Lo/oI;
+
+
+# direct methods
+.method static constructor <clinit>()V
+    .locals 3
+
+    .line 1
+    new-instance v0, Lo/oI;
+
+    .line 2
+    .line 3
+    const/4 v1, 0x0
+
+    .line 4
+    const/4 v2, 0x3
+
+    .line 5
+    invoke-direct {v0, v1, v1, v2}, Lo/pI;-><init>(III)V
+
+    .line 6
+    .line 7
+    .line 8
+    sput-object v0, Lo/oI;->d:Lo/oI;
+
+    .line 9
+    .line 10
+    return-void
+.end method
+
+
+# virtual methods
+.method public final a(Lo/Ke;Lo/w9;Lo/iU;Lo/zO;Lo/qI;)V
+    .locals 0
+
+    .line 1
+    invoke-interface {p2}, Lo/w9;->c()V
+
+    .line 2
+    .line 3
+    .line 4
+    return-void
+.end method
