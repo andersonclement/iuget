@@ -1,0 +1,20 @@
+package com.jcraft.jsch;
+
+/* loaded from: classes2.dex */
+public interface MAC {
+    void doFinal(byte[] bArr, int i);
+
+    int getBlockSize();
+
+    String getName();
+
+    void init(byte[] bArr) throws Exception;
+
+    default boolean isEtM() {
+        return false;
+    }
+
+    void update(int i);
+
+    void update(byte[] bArr, int i, int i2);
+}
